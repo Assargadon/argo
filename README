@@ -3,3 +3,7 @@
 
 Code for AR-Go wearable computer project
 see http://argo.kiborgov.net
+
+КАТАЛОГИ:
+site - это исходники сайта http://argo.kiborgov.net
+cairo-interpreter - это скетчи для интерпретатора векторной графики на основе Cairo и yaml (не забудте поставить библиотеки python-cairo и python-yaml)

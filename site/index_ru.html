@@ -1,0 +1,89 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="keywords" content="augmented reality, wearable computer, wearable computing, дополненная реальность, носимый компьютер">
+	<link rel="icon" type="image/png" href="argo-favicon.png" />
+	<title>AR-Go - навигатор дополненной реальности</title>
+
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-30498770-1']);
+		_gaq.push(['_trackPageview']);
+
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+
+	<script language="JavaScript" type="text/javascript"><!--
+	var i=0;
+	var pics=[
+		"telegamochka.png",
+		"eyetop.png",
+	    	"prototype.png",
+		"biatlon.png",
+		"biatlon.jpg",
+		"hardware.png",
+		"navigator.png",
+		"argo-logo.png"
+	];
+	var labels=[
+		"Киборги на улицах Москвы!", // Cyborgs on the Moscow' streets!
+		"Очки-смартфон", // Eye-smartwear
+		"Прото AR-Go", // Proto AR-Go
+		"AR-Go - тренажер для лыжников", // Sky training system
+		"AR-Go - тренажер для лыжников", // Sky training system
+		"Разработка прототипа", // Prototyping
+		"Навигатор для байкера", // GPS-navigator for bikers
+		"AR-Go: твой навигатор в дополненной реальности" // AR-Go: your personal AR-navigator
+	];
+	update_picture();
+
+	function update_picture()
+	{
+		var pic=document.getElementById("pic");
+		var label=document.getElementById("pic-label");
+		pic.src=pics[i];
+		label.innerHTML=labels[i];
+		i++;
+		i=i%pics.length;
+	}
+	// --></script>
+
+	<style type="text/css">
+		.mainMenu a{
+			background-color: #EEEEEE;
+			color: #888888;
+			font-size: small;
+			font-family: arial;
+			padding: 1px 1em;
+		}
+		.mainMenu a:hover{
+			background-color: #AAEEEE;
+		}
+	</style>
+</head>
+
+<body style="text-align:center">
+<div class="mainMenu">
+	<a href="about_ru.html">что такое AR-Go</a>
+	<a href="order_ru.html">предзаказ</a>
+	<a href="http://ru-wearable.livejournal.com/tag/argo">блог</a>
+	<a href="publications_ru.html">СМИ о нас</a>
+	<a href="materials_ru.html">материалы для СМИ</a>
+	<a href="contacts_ru.html">контакты</a>
+</div>
+
+<div style="height: 15%;"><!-- VERTICAL SPACE --></div>
+
+<div>
+	<a style="border-width:0px; " href="#" onclick="update_picture();"><IMG id="pic" src="argo-logo.png"></a>
+	<br/>
+	<span id="pic-label">Щелкните, чтобы увидеть больше фото</span>
+</div>
+</body>
+</html>

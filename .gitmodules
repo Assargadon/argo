@@ -1,0 +1,6 @@
+[submodule "cairo-display/jni/cairo"]
+	path = cairo-display/jni/cairo
+	url = git://git.cairographics.org/git/cairo
+[submodule "cairo-display/jni/pixman"]
+	path = cairo-display/jni/pixman
+	url = git://git.cairographics.org/git/pixman.git

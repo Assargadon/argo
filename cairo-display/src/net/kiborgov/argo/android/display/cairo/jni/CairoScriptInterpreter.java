@@ -13,6 +13,10 @@ public class CairoScriptInterpreter extends Pointer {
 
 	public native void feed(byte[] data);
 
+	public native void feed(byte[] data, int start, int length);
+
+	public native void feed(String line);
+
 	public native int getSurfaceCount();
 
 	public native void getSurfaceSize(int index, double[] size);

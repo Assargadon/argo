@@ -21,7 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <stdint.h>
 
 #include <cairo.h>
 #include <cairo-script-interpreter.h>
@@ -43,6 +43,8 @@ typedef struct
   csi_context_list_t *ctx_list;
   int ctx_count;
 } csi_data_t;
+
+#define csi_data_ptr(env, obj) ((csi_data_t*)(intptr_t)(*(env))->GetLongField((env), (obj), pointerId))
 
 static cairo_surface_t *_surface_create(
   void *closure, cairo_content_t content, double width, double height, long uid)
@@ -89,7 +91,7 @@ static void _context_destroy(
       --data->ctx_count;
     }
     break;
-	}
+  }
 }
 
 static jfieldID pointerId;
@@ -119,14 +121,14 @@ JNIEXPORT jlong JNICALL Java_net_kiborgov_argo_android_display_cairo_jni_CairoSc
 
   cairo_script_interpreter_install_hooks(data->csi, &hooks);
   //(*env)->SetLongField(env, obj, pointerId, (jlong)data); // will be initialized in the constructor
-  return (jlong)data;
+  return (jlong)(intptr_t)data;
 }
 
 JNIEXPORT void JNICALL Java_net_kiborgov_argo_android_display_cairo_jni_CairoScriptInterpreter_free(
   JNIEnv *env, jobject obj)
 {
   LOGI("CairoScriptInterpreter.free()");
-  csi_data_t *data = (csi_data_t*)(*env)->GetLongField(env, obj, pointerId);
+  csi_data_t *data = csi_data_ptr(env, obj);
   cairo_script_interpreter_destroy(data->csi); // TODO: handle errors
   free(data);
 }
@@ -135,25 +137,47 @@ JNIEXPORT jint JNICALL Java_net_kiborgov_argo_android_display_cairo_jni_CairoScr
   JNIEnv *env, jobject obj)
 {
   LOGI("CairoScriptInterpreter.getLineNumber()");
-  csi_data_t *data = (csi_data_t*)(*env)->GetLongField(env, obj, pointerId);
+  csi_data_t *data = csi_data_ptr(env, obj);
   return (jint)cairo_script_interpreter_get_line_number(data->csi);
 }
 
-JNIEXPORT jint JNICALL Java_net_kiborgov_argo_android_display_cairo_jni_CairoScriptInterpreter_feed___3B(
+JNIEXPORT void JNICALL Java_net_kiborgov_argo_android_display_cairo_jni_CairoScriptInterpreter_feed___3BII(
+  JNIEnv *env, jobject obj, jbyteArray array, jint start, jint length)
+{
+  csi_data_t *data = csi_data_ptr(env, obj);
+  jbyte *bytes = (jbyte*)malloc(length);
+  (*env)->GetByteArrayRegion(env, array, start, length, bytes); // TODO: handle errors
+  LOGI("CairoScriptInterpreter.feed(%.*s..., %d, %d)", 20, bytes, start, length);
+  cairo_script_interpreter_feed_string(data->csi, bytes, length); // TODO: handle errors
+  free(bytes);
+}
+
+JNIEXPORT void JNICALL Java_net_kiborgov_argo_android_display_cairo_jni_CairoScriptInterpreter_feed___3B(
   JNIEnv *env, jobject obj, jbyteArray array)
 {
-  csi_data_t *data = (csi_data_t*)(*env)->GetLongField(env, obj, pointerId);
+  csi_data_t *data = csi_data_ptr(env, obj);
   jsize length = (*env)->GetArrayLength(env, array);
   jbyte *bytes = (*env)->GetByteArrayElements(env, array, NULL); // TODO: handle errors
-  LOGI("CairoScriptInterpreter.feed(%.*s)", length, bytes);
+  LOGI("CairoScriptInterpreter.feed(%.*s...)", 20, bytes);
   cairo_script_interpreter_feed_string(data->csi, bytes, length); // TODO: handle errors
   (*env)->ReleaseByteArrayElements(env, array, bytes, JNI_ABORT);
+}
+
+JNIEXPORT void JNICALL Java_net_kiborgov_argo_android_display_cairo_jni_CairoScriptInterpreter_feed__Ljava_lang_String_2(
+  JNIEnv *env, jobject obj, jobject string)
+{
+  csi_data_t *data = csi_data_ptr(env, obj);
+  jsize length = (*env)->GetStringLength(env, string);
+  const jchar *chars = (*env)->GetStringChars(env, string, NULL); // TODO: handle errors
+  LOGI("CairoScriptInterpreter.feed(%.*s...)", 20, string);
+  cairo_script_interpreter_feed_string(data->csi, (const char*)chars, length); // TODO: handle errors
+  (*env)->ReleaseStringChars(env, string, chars);
 }
 
 JNIEXPORT jint JNICALL Java_net_kiborgov_argo_android_display_cairo_jni_CairoScriptInterpreter_getSurfaceCount(
   JNIEnv *env, jobject obj)
 {
-  csi_data_t *data = (csi_data_t*)(*env)->GetLongField(env, obj, pointerId);
+  csi_data_t *data = csi_data_ptr(env, obj);
   LOGI("CairoScriptInterpreter.getSurfaceCount()=%d", data->ctx_count);
   return data->ctx_count;
 }
@@ -162,7 +186,7 @@ JNIEXPORT void JNICALL Java_net_kiborgov_argo_android_display_cairo_jni_CairoScr
   JNIEnv *env, jobject obj)
 {
   LOGI("CairoScriptInterpreter.clearSurfaces()");
-  csi_data_t *data = (csi_data_t*)(*env)->GetLongField(env, obj, pointerId);
+  csi_data_t *data = csi_data_ptr(env, obj);
   while (data->ctx_list != NULL)
   {
     csi_context_list_t *list = data->ctx_list;
@@ -240,7 +264,7 @@ JNIEXPORT void JNICALL Java_net_kiborgov_argo_android_display_cairo_jni_CairoScr
   JNIEnv *env, jobject obj, jint index, jdoubleArray array)
 {
   LOGI("CairoScriptInterpreter.getSurfaceSize()");
-  csi_data_t *data = (csi_data_t*)(*env)->GetLongField(env, obj, pointerId);
+  csi_data_t *data = csi_data_ptr(env, obj);
   for (csi_context_list_t *list = data->ctx_list; list != NULL; list = list->next)
     if (!index--)
     {
@@ -263,7 +287,7 @@ JNIEXPORT void JNICALL Java_net_kiborgov_argo_android_display_cairo_jni_CairoScr
   JNIEnv *env, jobject obj, jint index, jobject bitmap)
 {
   LOGI("CairoScriptInterpreter.getSurface()");
-  csi_data_t *data = (csi_data_t*)(*env)->GetLongField(env, obj, pointerId);
+  csi_data_t *data = csi_data_ptr(env, obj);
   for (csi_context_list_t *list = data->ctx_list; list != NULL; list = list->next)
     if (!index--)
     {

@@ -4,6 +4,7 @@ LIBPIXMAN_SRC= \
 	       pixman/pixman/pixman-access.c                \
 	       pixman/pixman/pixman-access-accessors.c      \
 	       pixman/pixman/pixman-cpu.c                   \
+         pixman/pixman/pixman-noop.c                  \
 	       pixman/pixman/pixman-gradient-walker.c       \
 	       pixman/pixman/pixman-region16.c              \
 	       pixman/pixman/pixman-region32.c              \
@@ -33,7 +34,7 @@ LIBPIXMAN_SRC= \
 
 
 
-LIBPIXMAN_CFLAGS:=-D_USE_MATH_DEFINES -DPIXMAN_NO_TLS -DPACKAGE="android-cairo" -DUSE_ARM_NEON -DUSE_ARM_SIMD
+LIBPIXMAN_CFLAGS:=-D_USE_MATH_DEFINES -DPIXMAN_NO_TLS -DPACKAGE="argo-cairo-display" -DUSE_ARM_NEON -DUSE_ARM_SIMD
 
 include $(CLEAR_VARS)
 

@@ -1,0 +1,12 @@
+diff --git a/pixman/pixman-utils.c b/pixman/pixman-utils.c
+index 2ec2594..de05c0e 100644
+--- a/pixman/pixman-utils.c
++++ b/pixman/pixman-utils.c
+@@ -27,6 +27,7 @@
+ #endif
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <limits.h>
+ 
+ #include "pixman-private.h"
+ 

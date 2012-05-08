@@ -1,0 +1,105 @@
+diff --git a/src/cairo-wideint-private.h b/src/cairo-wideint-private.h
+index 4051a1d..3f5491b 100644
+--- a/src/cairo-wideint-private.h
++++ b/src/cairo-wideint-private.h
+@@ -55,9 +55,9 @@ cairo_uquorem64_t I
+ _cairo_uint64_divrem (cairo_uint64_t num, cairo_uint64_t den);
+ 
+ cairo_uint64_t I	_cairo_double_to_uint64 (double i);
+-double	       I	_cairo_uint64_to_double (uint64_t i);
++double	       I	_cairo_uint64_to_double (cairo_uint64_t i);
+ cairo_int64_t  I	_cairo_double_to_int64 (double i);
+-double	       I	_cairo_int64_to_double (uint64_t i);
++double	       I	_cairo_int64_to_double (cairo_uint64_t i);
+ 
+ cairo_uint64_t I	_cairo_uint32_to_uint64 (uint32_t i);
+ #define			_cairo_uint64_to_uint32(a)  ((a).lo)
+diff --git a/src/cairo-contour.c b/src/cairo-contour.c
+index d356f4f..6732e0b 100644
+--- a/src/cairo-contour.c
++++ b/src/cairo-contour.c
+@@ -238,7 +238,7 @@ point_distance_sq (const cairo_point_t *p1,
+ {
+     int32_t dx = p1->x - p2->x;
+     int32_t dy = p1->y - p2->y;
+-    return _cairo_int32x32_64_mul (dx, dx) + _cairo_int32x32_64_mul (dy, dy);
++    return _cairo_uint64_add (_cairo_int32x32_64_mul (dx, dx), _cairo_int32x32_64_mul (dy, dy));
+ }
+ 
+ #define DELETED(p) ((p)->x == INT_MIN && (p)->y == INT_MAX)
+@@ -310,7 +310,7 @@ _cairo_contour_simplify (cairo_contour_t *contour, double tolerance)
+     cairo_point_t *last = NULL;
+     cairo_contour_iter_t iter, furthest;
+     cairo_bool_t simplified;
+-    uint64_t max = 0;
++    cairo_uint64_t max;
+     int i;
+ 
+     if (contour->chain.num_points <= 2)
+@@ -323,7 +323,7 @@ _cairo_contour_simplify (cairo_contour_t *contour, double tolerance)
+     for (chain = &contour->chain; chain; chain = chain->next) {
+ 	for (i = 0; i < chain->num_points; i++) {
+ 	    if (last == NULL ||
+-		point_distance_sq (last, &chain->points[i]) > tolerance) {
++		_cairo_uint64_to_double (point_distance_sq (last, &chain->points[i])) > tolerance) {
+ 		last = &chain->points[i];
+ 	    } else {
+ 		MARK_DELETED (&chain->points[i]);
+@@ -336,16 +336,16 @@ _cairo_contour_simplify (cairo_contour_t *contour, double tolerance)
+     do {
+ 	last = &contour->chain.points[0];
+ 	iter_init (&furthest, contour);
+-	max = 0;
++	max = _cairo_uint32_to_uint64 (0);
+ 	for (chain = &contour->chain; chain; chain = chain->next) {
+ 	    for (i = 0; i < chain->num_points; i++) {
+-		uint64_t d;
++		cairo_uint64_t d;
+ 
+ 		if (DELETED (&chain->points[i]))
+ 		    continue;
+ 
+ 		d = point_distance_sq (last, &chain->points[i]);
+-		if (d > max) {
++		if (_cairo_uint64_gt (d, max)) {
+ 		    furthest.chain = chain;
+ 		    furthest.point = &chain->points[i];
+ 		    max = d;
+diff --git a/src/cairo-path-stroke-polygon.c b/src/cairo-path-stroke-polygon.c
+index 7b485a1..e2bc5d8 100644
+--- a/src/cairo-path-stroke-polygon.c
++++ b/src/cairo-path-stroke-polygon.c
+@@ -97,7 +97,7 @@ point_distance_sq (const cairo_point_t *p1,
+ {
+     int32_t dx = p1->x - p2->x;
+     int32_t dy = p1->y - p2->y;
+-    return _cairo_int32x32_64_mul (dx, dx) + _cairo_int32x32_64_mul (dy, dy);
++    return _cairo_int64_add (_cairo_int32x32_64_mul (dx, dx), _cairo_int32x32_64_mul (dy, dy));
+ }
+ 
+ static cairo_bool_t
+@@ -269,11 +269,11 @@ compute_inner_joint (cairo_point_t *p1, cairo_int64_t d_p1,
+     half_line_width = _cairo_int64_sub (half_line_width, d_p1);
+     d_p2 = _cairo_int64_sub (d_p2, d_p1);
+ 
+-    p1->x += _cairo_int_96by64_32x64_divrem (_cairo_int64x32_128_mul (half_line_width, dx),
+-					      d_p2).quo;
++    p1->x += _cairo_int64_to_int32 (_cairo_int_96by64_32x64_divrem (_cairo_int64x32_128_mul (half_line_width, dx),
++				    d_p2).quo);
+ 
+-    p1->y += _cairo_int_96by64_32x64_divrem (_cairo_int64x32_128_mul (half_line_width, dy),
+-					      d_p2).quo;
++    p1->y += _cairo_int64_to_int32 (_cairo_int_96by64_32x64_divrem (_cairo_int64x32_128_mul (half_line_width, dy),
++				    d_p2).quo);
+ }
+ 
+ static void
+@@ -1389,7 +1389,7 @@ _cairo_path_fixed_stroke_to_polygon (const cairo_path_fixed_t	*path,
+     _cairo_contour_init (&stroker.ccw.contour, -1);
+     tolerance *= CAIRO_FIXED_ONE;
+     tolerance *= tolerance;
+-    stroker.contour_tolerance = tolerance;
++    stroker.contour_tolerance = _cairo_double_to_uint64 (tolerance);
+     stroker.polygon = polygon;
+ 
+     status = _cairo_path_fixed_interpret (path,

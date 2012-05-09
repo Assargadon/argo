@@ -4,3 +4,4 @@
 << /width WIDTH /height HEIGHT >> surface context
 
 1 1 0 rgb set-source paint
+pop

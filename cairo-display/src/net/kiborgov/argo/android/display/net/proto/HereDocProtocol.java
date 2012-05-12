@@ -1,49 +1,24 @@
 package net.kiborgov.argo.android.display.net.proto;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 
-public class HereDocProtocol extends CairoProtocol {
+public class HereDocProtocol extends GenericTextProtocol {
 
-	private BufferedReader in;
-	private PrintWriter out;
-	private String documentEnd;
+	protected String documentEnd;
 
-	HereDocProtocol(InputStream in, OutputStream out, String documentEnd) {
-		this.in = new BufferedReader(new InputStreamReader(in));
-		this.out = new PrintWriter(new OutputStreamWriter(out)); // TODO: probably not needed
+	public HereDocProtocol(InputStream in, OutputStream out, String documentEnd) {
+		super(in, out, "OK", false);
 		this.documentEnd = documentEnd;
 	}
 
 	@Override
-	public byte[] read() throws IOException {
-		String line;
-		if (null == (line = in.readLine()))
-			throw new IOException("No data could be read");
+	protected String readLine() throws IOException {
+		String line = super.readLine();
 		if (documentEnd.equals(line))
 			return null;
-		return line.getBytes();
+		return line;
 	}
 
-	@Override
-	public void ack() {
-		out.println("OK");
-		out.flush();
-	}
-
-	@Override
-	public void close() {
-		try {
-			in.close();
-		} catch (IOException e) {
-			//
-		} finally {
-			out.close();
-		}
-	}
 }

@@ -4,6 +4,4 @@ public interface CairoClientListener {
 
 	void onDataRead(byte[] buffer, int start, int length);
 
-	void onDataComplete();
-
 }

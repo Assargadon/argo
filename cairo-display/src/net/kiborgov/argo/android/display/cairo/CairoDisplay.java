@@ -4,17 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.kiborgov.argo.android.display.cairo.jni.CairoScriptInterpreter;
+import net.kiborgov.argo.android.display.cairo.jni.CairoScriptInterpreterListener;
+import net.kiborgov.argo.android.display.cairo.jni.Surface;
 import net.kiborgov.argo.android.display.net.CairoClientListener;
 import android.graphics.Bitmap;
 
-public class CairoDisplay implements CairoClientListener {
+public class CairoDisplay implements CairoClientListener, CairoScriptInterpreterListener {
 
 	CairoScriptInterpreter csi;
 	List<CairoDisplayListener> listeners = new ArrayList<CairoDisplayListener>();
 	Bitmap bitmap;
 
 	public CairoDisplay() {
-		csi = new CairoScriptInterpreter();
+		csi = new CairoScriptInterpreter(this);
 	}
 
 	public Bitmap getBitmap() {
@@ -38,20 +40,16 @@ public class CairoDisplay implements CairoClientListener {
 		csi.feed(buffer, start, length);
 	}
 
-	public void onDataComplete() {
-		int count = csi.getSurfaceCount();
-		// FIXME: should more than one surface be supported?
-		if (count >= 1) {
-			double[] size = new double[2];
-			csi.getSurfaceSize(0, size);
-			Bitmap bmp = Bitmap.createBitmap((int)size[0], (int)size[1], Bitmap.Config.RGB_565);
-			csi.getSurface(0, bmp);
-			bitmap = bmp;
-			doInvalidate();
-			csi.clearSurfaces();
-		} else {
-			// Temporary workaround for stalled interpreter
-			csi = new CairoScriptInterpreter();
-		}
+	public void onContextDestroy() {
+		// TODO Auto-generated method stub
+	}
+
+	public void onCopyPage(Surface surface) {
+		bitmap = surface.getBitmap();
+		doInvalidate();
+	}
+
+	public void onShowPage(Surface surface) {
+		// TODO Auto-generated method stub
 	}
 }

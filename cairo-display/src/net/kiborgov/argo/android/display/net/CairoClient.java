@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.kiborgov.argo.android.display.net.proto.CairoProtocol;
-import net.kiborgov.argo.android.display.net.proto.CairoProtocolFactory;
+import net.kiborgov.argo.android.display.net.proto.factory.CairoProtocolFactory;
 
 public class CairoClient implements Runnable {
 	private static String TAG = "cairo-display";
@@ -19,8 +19,8 @@ public class CairoClient implements Runnable {
 	protected static String PARAM_CAIRO_SERVER_CONNECT_TIMEOUT = "net.kiborgov.argo.server.cairo.ConnectTimeout";
 	*/
 
-	protected String host = "192.168.1.2";
-	protected int port = 7778;
+	protected String host = "cyborgize.me";
+	protected int port = 49778;
 	protected int timeout = 20000;
 
 	protected Thread thread;
@@ -78,7 +78,6 @@ public class CairoClient implements Runnable {
 				if (null != buffer) {
 					onDataRead(buffer, 0, buffer.length);
 				} else {
-					onDataComplete();
 					proto.ack();
 				}
 			}
@@ -90,11 +89,6 @@ public class CairoClient implements Runnable {
 	private void onDataRead(byte[] buffer, int start, int length) {
 		for (CairoClientListener listener : listeners)
 			listener.onDataRead(buffer, start, length);
-	}
-
-	private void onDataComplete() {
-		for (CairoClientListener listener : listeners)
-			listener.onDataComplete();
 	}
 
 	public void addListener(CairoClientListener listener) {

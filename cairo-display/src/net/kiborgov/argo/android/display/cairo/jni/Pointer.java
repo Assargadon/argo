@@ -5,6 +5,7 @@ public abstract class Pointer {
 
 	protected static native void initClass();
 	protected abstract long init();
+	protected abstract long init(long pointer);
 	protected abstract void free();
 
 	static {
@@ -13,7 +14,11 @@ public abstract class Pointer {
 	}
 
 	public Pointer() {
-		pointer = init();
+		this.pointer = init();
+	}
+
+	public Pointer(long pointer) {
+		this.pointer = init(pointer);
 	}
 
 	protected void finalize() {

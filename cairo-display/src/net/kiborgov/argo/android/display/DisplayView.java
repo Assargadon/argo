@@ -2,8 +2,6 @@ package net.kiborgov.argo.android.display;
 
 import net.kiborgov.argo.android.display.cairo.CairoDisplay;
 import net.kiborgov.argo.android.display.cairo.CairoDisplayListener;
-import net.kiborgov.argo.android.display.net.CairoClient;
-import net.kiborgov.argo.android.display.net.proto.factory.GenericTextProtocolFactory;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -13,7 +11,6 @@ import android.view.View;
 
 public class DisplayView extends View implements CairoDisplayListener {
 
-	CairoClient client;
 	CairoDisplay display;
 
 	public DisplayView(Context context) {
@@ -26,9 +23,6 @@ public class DisplayView extends View implements CairoDisplayListener {
 
 		display = new CairoDisplay();
 		display.addListener(this);
-
-		client = new CairoClient(new GenericTextProtocolFactory());
-		client.addListener(display);
 	}
 
 	@Override
@@ -52,7 +46,7 @@ public class DisplayView extends View implements CairoDisplayListener {
 		{
 			switch (keyCode) {
 			case KeyEvent.KEYCODE_BACK:
-				client.close();
+				display.stop();
 				((Activity)getContext()).finish();
 				return true;
 			}

@@ -22,6 +22,7 @@ public class CairoClient implements Runnable {
 	protected String host = "cyborgize.me";
 	protected int port = 49778;
 	protected int timeout = 20000;
+	private boolean connected;
 
 	protected Thread thread;
 	protected List<CairoClientListener> listeners = new ArrayList<CairoClientListener>();
@@ -71,6 +72,10 @@ public class CairoClient implements Runnable {
 	}
 
 	private void handleConnection(Socket client) throws IOException {
+		boolean error = false;
+
+		connected = true;
+		onConnect();
 		CairoProtocol proto = protocolFactory.create(client.getInputStream(), client.getOutputStream());
 		try {
 			while (!thread.isInterrupted()) {
@@ -81,14 +86,32 @@ public class CairoClient implements Runnable {
 					proto.ack();
 				}
 			}
+		} catch (IOException e) {
+			error = true;
 		} finally {
 			proto.close();
+			connected = false;
+			onDisconnect(error);
 		}
+	}
+
+	private void onConnect() {
+		for (CairoClientListener listener : listeners)
+			listener.onConnect();
+	}
+
+	private void onDisconnect(boolean error) {
+		for (CairoClientListener listener : listeners)
+			listener.onDisconnect(error);
 	}
 
 	private void onDataRead(byte[] buffer, int start, int length) {
 		for (CairoClientListener listener : listeners)
 			listener.onDataRead(buffer, start, length);
+	}
+
+	public boolean isConnected() {
+		return connected;
 	}
 
 	public void addListener(CairoClientListener listener) {

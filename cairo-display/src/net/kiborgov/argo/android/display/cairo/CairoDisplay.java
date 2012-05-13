@@ -65,13 +65,18 @@ public class CairoDisplay implements CairoClientListener, CairoScriptInterpreter
 			String text = " CONNECTION LOST ";
 			Rect rect = new Rect();
 
+			paint.setTextSize(20);
 			paint.getTextBounds(text, 0, text.length(), rect);
+			int dx = -rect.left, dy = -rect.top;
+			rect.offsetTo(0, 0);
 			rect.offset((bitmap.getWidth() - rect.right) / 2, (bitmap.getHeight() - rect.bottom) / 2);
 
-			paint.setColor(Color.BLACK);
-			canvas.drawRect(rect, paint);
+			Rect box = new Rect(rect);
+			box.inset(-10, -10);
+			paint.setColor(0x90000000);
+			canvas.drawRect(box, paint);
 			paint.setColor(Color.WHITE);
-			canvas.drawText(text, rect.left, rect.top, paint);
+			canvas.drawText(text, rect.left + dx, rect.top + dy, paint);
 		}
 		onInvalidate();
 	}

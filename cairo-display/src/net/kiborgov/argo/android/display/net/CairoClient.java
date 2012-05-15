@@ -2,7 +2,6 @@ package net.kiborgov.argo.android.display.net;
 
 import java.io.IOException;
 import java.net.BindException;
-import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
@@ -14,7 +13,7 @@ import net.kiborgov.argo.android.display.net.proto.factory.CairoProtocolFactory;
 import android.util.Log;
 
 public class CairoClient implements Runnable {
-	private static String TAG = "cairo-display";
+	private static String TAG = "cairo-client";
 
 	/*
 	protected static String PARAM_CAIRO_SERVER_HOST = "net.kiborgov.argo.server.cairo.Host";
@@ -28,6 +27,7 @@ public class CairoClient implements Runnable {
 	private boolean connected;
 
 	protected Thread thread;
+	ServerSocket client;
 	protected List<CairoClientListener> listeners = new ArrayList<CairoClientListener>();
 
 	protected CairoProtocolFactory protocolFactory;
@@ -39,6 +39,7 @@ public class CairoClient implements Runnable {
 	}
 
 	public void close() {
+		doClose();
 		thread.interrupt();
 	}
 
@@ -52,14 +53,11 @@ public class CairoClient implements Runnable {
 
 	public void run() {
 		Log.i(TAG, "CairoClient.run()");
-		ServerSocket client = null;
 		try {
 			while (!thread.isInterrupted()) {
 				SocketAddress address = null;
 				try {
-					client = new ServerSocket();
-					address = new InetSocketAddress(port);
-					client.bind(address);
+					client = new ServerSocket(port);
 					Log.i(TAG, "Successfully bound to " + address);
 					break;
 				} catch (BindException e) {
@@ -69,6 +67,7 @@ public class CairoClient implements Runnable {
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e1) {
+						Log.i(TAG, "Interrupted, exiting");
 						return;
 					}
 				}
@@ -76,23 +75,34 @@ public class CairoClient implements Runnable {
 		} catch (IOException e) {
 			// TODO Handle errors
 			e.printStackTrace();
+			Log.e(TAG, "Exception, exiting");
 			return;
 		}
-		while (!thread.isInterrupted()) {
-			try {
-				handleConnection(client.accept());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} finally {
-				if (null != client)
-					try {
-						client.close();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+		try {
+			while (!thread.isInterrupted()) {
+				Socket socket = client.accept();
+				try {
+					handleConnection(socket);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			doClose();
+		}
+		Log.i(TAG, "Exiting");
+	}
+
+	private void doClose() {
+		try {
+			client.close();
+			Log.i(TAG, "Client closed");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 

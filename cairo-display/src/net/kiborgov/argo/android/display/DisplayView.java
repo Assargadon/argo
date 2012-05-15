@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.view.KeyEvent;
 import android.view.View;
 
@@ -27,6 +28,7 @@ public class DisplayView extends View implements CairoDisplayListener {
 
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+		display.setSize(w, h);
 		super.onSizeChanged(w, h, oldw, oldh);
 	}
 
@@ -35,9 +37,11 @@ public class DisplayView extends View implements CairoDisplayListener {
 		super.onDraw(canvas);
 
 		Bitmap bitmap = display.getBitmap();
-		if (null == bitmap)
-			return;
-		canvas.drawBitmap(bitmap, 0, 0, null);
+		if (null == bitmap) {
+			canvas.drawColor(Color.BLACK);
+		} else {
+			canvas.drawBitmap(bitmap, 0, 0, null);
+		}
 	}
 
 	@Override

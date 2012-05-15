@@ -10,12 +10,17 @@ import net.kiborgov.argo.android.display.net.CairoClient;
 import net.kiborgov.argo.android.display.net.CairoClientListener;
 import net.kiborgov.argo.android.display.net.proto.factory.GenericTextProtocolFactory;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 
 public class CairoDisplay implements CairoClientListener, CairoScriptInterpreterListener {
+
+	private static final String CONNECTION_LOST = " CONNECTION LOST ";
+	private static final String NO_SIGNAL = " NO SIGNAL ";
+	private static final String SCREEN_RESET = " SCREEN RESET ";
 
 	private CairoClient client;
 	CairoScriptInterpreter csi;
@@ -44,9 +49,15 @@ public class CairoDisplay implements CairoClientListener, CairoScriptInterpreter
 		listeners.remove(listener);
 	}
 
+	public void setSize(int width, int height) {
+		bitmap = Bitmap.createBitmap(width, height, Config.ARGB_8888);
+		bitmap.eraseColor(Color.BLUE);
+		drawMessageBox(client.isConnected() ? SCREEN_RESET : NO_SIGNAL);
+		onInvalidate();
+	}
+
 	public void stop() {
-		if (null != client)
-			client.close();
+		client.close();
 	}
 
 	public void onConnect() {
@@ -55,30 +66,28 @@ public class CairoDisplay implements CairoClientListener, CairoScriptInterpreter
 	}
 
 	public void onDisconnect(boolean error) {
-		if (!error)
-		{
-			client = null;
-			bitmap.eraseColor(Color.BLACK);
-		} else {
-			Canvas canvas = new Canvas(bitmap);
-			Paint paint = new Paint();
-			String text = " CONNECTION LOST ";
-			Rect rect = new Rect();
-
-			paint.setTextSize(20);
-			paint.getTextBounds(text, 0, text.length(), rect);
-			int dx = -rect.left, dy = -rect.top;
-			rect.offsetTo(0, 0);
-			rect.offset((bitmap.getWidth() - rect.right) / 2, (bitmap.getHeight() - rect.bottom) / 2);
-
-			Rect box = new Rect(rect);
-			box.inset(-10, -10);
-			paint.setColor(0x90000000);
-			canvas.drawRect(box, paint);
-			paint.setColor(Color.WHITE);
-			canvas.drawText(text, rect.left + dx, rect.top + dy, paint);
-		}
+		csi = null;
+		drawMessageBox(error ? CONNECTION_LOST : NO_SIGNAL);
 		onInvalidate();
+	}
+
+	private void drawMessageBox(String text) {
+		Canvas canvas = new Canvas(bitmap);
+		Paint paint = new Paint();
+		Rect rect = new Rect();
+
+		paint.setTextSize(20);
+		paint.getTextBounds(text, 0, text.length(), rect);
+		int dx = -rect.left, dy = -rect.top;
+		rect.offsetTo(0, 0);
+		rect.offset((bitmap.getWidth() - rect.right) / 2, (bitmap.getHeight() - rect.bottom) / 2);
+
+		Rect box = new Rect(rect);
+		box.inset(-10, -10);
+		paint.setColor(0x90000000);
+		canvas.drawRect(box, paint);
+		paint.setColor(Color.WHITE);
+		canvas.drawText(text, rect.left + dx, rect.top + dy, paint);
 	}
 
 	public void onDataRead(byte[] buffer, int start, int length) {
@@ -90,7 +99,7 @@ public class CairoDisplay implements CairoClientListener, CairoScriptInterpreter
 	}
 
 	public void onCopyPage(Surface surface) {
-		bitmap = surface.getBitmap();
+		surface.drawTo(bitmap, 0, 0, false);
 		onInvalidate();
 	}
 

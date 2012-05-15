@@ -99,7 +99,7 @@ JNIEXPORT void JNICALL Java_net_kiborgov_argo_android_display_cairo_jni_Surface_
   cairo_surface_destroy(surface);
 }
 
-static void _get_surface(JNIEnv *env, cairo_surface_t *surface, jobject bitmap);
+static void _get_surface(JNIEnv *env, cairo_surface_t *surface, jobject bitmap, int x, int y, jboolean scale);
 
 JNIEXPORT jobject JNICALL Java_net_kiborgov_argo_android_display_cairo_jni_Surface_getBitmap(
   JNIEnv *env, jobject obj)
@@ -121,8 +121,16 @@ JNIEXPORT jobject JNICALL Java_net_kiborgov_argo_android_display_cairo_jni_Surfa
     return NULL;
   }
   jobject bitmap = (*env)->CallStaticObjectMethod(env, androidBitmap, androidBitmapCreateBitmap, width, height, config);
-  _get_surface(env, surface, bitmap);
+  _get_surface(env, surface, bitmap, 0, 0, JNI_FALSE);
   return bitmap;
+}
+
+JNIEXPORT void JNICALL Java_net_kiborgov_argo_android_display_cairo_jni_Surface_drawTo(
+  JNIEnv *env, jobject obj, jobject bitmap, int x, int y, jboolean scale)
+{
+  LOGI("Surface.drawBitmap()");
+  cairo_surface_t *surface = surface_data_ptr(env, obj);
+  _get_surface(env, surface, bitmap, x, y, scale);
 }
 
 static jmethodID csiListenerOnCopyPage;
@@ -254,12 +262,11 @@ JNIEXPORT void JNICALL Java_net_kiborgov_argo_android_display_cairo_jni_CairoScr
   (*env)->ReleaseStringChars(env, string, chars);
 }
 
-static void _get_pixels(cairo_surface_t *source, const AndroidBitmapInfo *info, void *pixels)
+static void _get_pixels(cairo_surface_t *source, const AndroidBitmapInfo *info, void *pixels, int x, int y, jboolean scale)
 {
   cairo_format_t format;
   cairo_surface_t *dest;
   cairo_t *ctx;
-  double x = 0, y = 0;
 
   switch (info->format)
   {
@@ -288,8 +295,8 @@ static void _get_pixels(cairo_surface_t *source, const AndroidBitmapInfo *info, 
       cairo_recording_surface_get_extents(source, &extents); // TODO: handle errors
       if (info->width != (int)extents.width || info->height != (int)extents.height)
         cairo_scale(ctx, info->width / extents.width, info->height / extents.height);
-      x = extents.x;
-      y = extents.y;
+      x += (int)extents.x;
+      y += (int)extents.y;
       break;
     }
 #endif
@@ -298,7 +305,7 @@ static void _get_pixels(cairo_surface_t *source, const AndroidBitmapInfo *info, 
       int width = cairo_image_surface_get_width(source);
       int height = cairo_image_surface_get_height(source);
 
-      if (info->width != width || info->height != height)
+      if (scale && (info->width != width || info->height != height))
         cairo_scale(ctx, (double)info->width / width, (double)info->height / height);
       break;
     }
@@ -310,7 +317,7 @@ static void _get_pixels(cairo_surface_t *source, const AndroidBitmapInfo *info, 
   cairo_surface_destroy(dest);
 }
 
-static void _get_surface(JNIEnv *env, cairo_surface_t *surface, jobject bitmap)
+static void _get_surface(JNIEnv *env, cairo_surface_t *surface, jobject bitmap, int x, int y, jboolean scale)
 {
   AndroidBitmapInfo info;
   void *pixels;
@@ -334,7 +341,7 @@ static void _get_surface(JNIEnv *env, cairo_surface_t *surface, jobject bitmap)
     return; // TODO: handle errors
   }
 
-  _get_pixels(surface, &info, pixels);
+  _get_pixels(surface, &info, pixels, x, y, scale);
 
   AndroidBitmap_unlockPixels(env, bitmap);
 }

@@ -2,6 +2,7 @@ package net.kiborgov.argo.android.display;
 
 import net.kiborgov.argo.android.display.cairo.CairoDisplay;
 import net.kiborgov.argo.android.display.cairo.CairoDisplayListener;
+import net.kiborgov.argo.android.display.net.CairoClient;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -14,7 +15,7 @@ public class DisplayView extends View implements CairoDisplayListener {
 
 	CairoDisplay display;
 
-	public DisplayView(Context context) {
+	public DisplayView(Context context, CairoClient client) {
 		super(context);
 
 		setKeepScreenOn(true);
@@ -22,7 +23,7 @@ public class DisplayView extends View implements CairoDisplayListener {
 		setFocusableInTouchMode(true);
 		requestFocus();
 
-		display = new CairoDisplay();
+		display = new CairoDisplay(client);
 		display.addListener(this);
 	}
 
@@ -50,7 +51,6 @@ public class DisplayView extends View implements CairoDisplayListener {
 		{
 			switch (keyCode) {
 			case KeyEvent.KEYCODE_BACK:
-				display.stop();
 				((Activity)getContext()).finish();
 				return true;
 			}

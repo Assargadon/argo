@@ -8,7 +8,6 @@ import net.kiborgov.argo.android.display.cairo.jni.CairoScriptInterpreterListene
 import net.kiborgov.argo.android.display.cairo.jni.Surface;
 import net.kiborgov.argo.android.display.net.CairoClient;
 import net.kiborgov.argo.android.display.net.CairoClientListener;
-import net.kiborgov.argo.android.display.net.proto.factory.GenericTextProtocolFactory;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
@@ -27,9 +26,9 @@ public class CairoDisplay implements CairoClientListener, CairoScriptInterpreter
 	List<CairoDisplayListener> listeners = new ArrayList<CairoDisplayListener>();
 	Bitmap bitmap;
 
-	public CairoDisplay() {
-		client = new CairoClient(new GenericTextProtocolFactory());
-		client.addListener(this);
+	public CairoDisplay(CairoClient client) {
+		this.client = client;
+		this.client.addListener(this);
 	}
 
 	public Bitmap getBitmap() {
@@ -54,10 +53,6 @@ public class CairoDisplay implements CairoClientListener, CairoScriptInterpreter
 		bitmap.eraseColor(Color.BLUE);
 		drawMessageBox(client.isConnected() ? SCREEN_RESET : NO_SIGNAL);
 		onInvalidate();
-	}
-
-	public void stop() {
-		client.close();
 	}
 
 	public void onConnect() {

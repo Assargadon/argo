@@ -42,5 +42,8 @@
 STRIPE HEIGHT scale
 
 0 1 COUNT 1 sub { stripe } for
+
+copy-page
+
 pop
 

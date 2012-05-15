@@ -24,4 +24,6 @@ STRIPE HEIGHT scale
 1 1 0 stripe
 1 1 1 stripe
 
+copy-page
+
 pop

@@ -1,14 +1,17 @@
 package net.kiborgov.argo.android.display.net;
 
 import java.io.IOException;
+import java.net.BindException;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketTimeoutException;
+import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
 import net.kiborgov.argo.android.display.net.proto.CairoProtocol;
 import net.kiborgov.argo.android.display.net.proto.factory.CairoProtocolFactory;
+import android.util.Log;
 
 public class CairoClient implements Runnable {
 	private static String TAG = "cairo-display";
@@ -48,14 +51,36 @@ public class CairoClient implements Runnable {
 	*/
 
 	public void run() {
+		Log.i(TAG, "CairoClient.run()");
+		ServerSocket client = null;
+		try {
+			while (!thread.isInterrupted()) {
+				SocketAddress address = null;
+				try {
+					client = new ServerSocket();
+					address = new InetSocketAddress(port);
+					client.bind(address);
+					Log.i(TAG, "Successfully bound to " + address);
+					break;
+				} catch (BindException e) {
+					if (thread.isInterrupted())
+						throw e;
+					Log.e(TAG, "Cannot bind to " + address + ": " + e.getMessage());
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e1) {
+						return;
+					}
+				}
+			}
+		} catch (IOException e) {
+			// TODO Handle errors
+			e.printStackTrace();
+			return;
+		}
 		while (!thread.isInterrupted()) {
-			Socket client = null;
 			try {
-				client = new Socket();
-				client.connect(new InetSocketAddress(host, port), timeout);
-				handleConnection(client);
-			} catch (SocketTimeoutException e) {
-				e.printStackTrace();
+				handleConnection(client.accept());
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

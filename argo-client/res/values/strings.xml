@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ArGO Client</string>
+    <string name="ARGO_SERVER_ADDRESS">argo.server.address</string>
+
+</resources>
